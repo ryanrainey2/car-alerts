@@ -40,7 +40,15 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await res.json();
-    return Response.json(data);
+
+    // Transform { data: { facets: { make: [{value, count}] } } }
+    // into { make: ["Ford", "Toyota", ...] } for the UI
+    const facetsObj = data?.data?.facets ?? {};
+    const result: Record<string, string[]> = {};
+    for (const [key, values] of Object.entries(facetsObj)) {
+      result[key] = (values as Array<{ value: string }>).map((v) => v.value);
+    }
+    return Response.json(result);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return Response.json({ error: message }, { status: 500 });
