@@ -44,7 +44,7 @@ export interface Listing {
   miles: number;
   dealer_name: string;
   vdp_url: string;
-  photos: string[];
+  photo_urls: string[];
   days_on_market: number;
   inventory_type: "new" | "used" | "certified";
   exterior_color?: string;
@@ -112,14 +112,14 @@ export async function searchListings(
     apiParams.year = years.join(",");
   }
 
-  const raw = await visorFetch<{ data: Listing[]; meta?: { total?: number } }>(
-    "/listings",
-    apiParams
-  );
+  const raw = await visorFetch<{
+    data: Listing[];
+    pagination?: { total?: number };
+  }>("/listings", apiParams);
 
   return {
     listings: raw.data ?? [],
-    total: raw.meta?.total ?? raw.data?.length ?? 0,
+    total: raw.pagination?.total ?? raw.data?.length ?? 0,
   };
 }
 

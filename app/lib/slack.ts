@@ -25,11 +25,11 @@ export async function sendSlackAlert(
         .filter(Boolean)
         .join("\n"),
     },
-    ...(l.photos?.[0]
+    ...(l.photo_urls?.[0]
       ? {
           accessory: {
             type: "image" as const,
-            image_url: l.photos[0],
+            image_url: l.photo_urls[0],
             alt_text: `${l.year} ${l.make} ${l.model}`,
           },
         }

@@ -14,7 +14,7 @@ interface Listing {
   miles: number;
   dealer_name: string;
   vdp_url: string;
-  photos: string[];
+  photo_urls: string[];
   days_on_market: number;
   inventory_type: string;
   exterior_color?: string;
@@ -777,14 +777,14 @@ export default function Home() {
                     position: "relative",
                     display: "grid",
                     placeItems: "center",
-                    background: l.photos?.[0]
+                    background: l.photo_urls?.[0]
                       ? undefined
                       : "repeating-linear-gradient(135deg, var(--color-neutral-200) 0 1px, transparent 1px 9px), var(--color-neutral-100)",
                   }}
                 >
-                  {l.photos?.[0] ? (
+                  {l.photo_urls?.[0] ? (
                     <img
-                      src={l.photos[0]}
+                      src={l.photo_urls[0]}
                       alt={`${l.year} ${l.make} ${l.model}`}
                       style={{
                         width: "100%",
