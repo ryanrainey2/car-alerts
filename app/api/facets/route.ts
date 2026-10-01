@@ -21,8 +21,16 @@ export async function GET(request: NextRequest) {
 
   if (make) url.searchParams.set("make", make);
   if (model) url.searchParams.set("model", model);
-  if (yearMin) url.searchParams.set("year_min", yearMin);
-  if (yearMax) url.searchParams.set("year_max", yearMax);
+
+  // Visor facets API uses "year" with comma-separated values, not year_min/year_max
+  if (yearMin || yearMax) {
+    const min = Number(yearMin) || 2000;
+    const max = Number(yearMax) || new Date().getFullYear() + 1;
+    const years: number[] = [];
+    for (let y = min; y <= max; y++) years.push(y);
+    url.searchParams.set("year", years.join(","));
+  }
+
   if (facets) url.searchParams.set("facets", facets);
 
   try {

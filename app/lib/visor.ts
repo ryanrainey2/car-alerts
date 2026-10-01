@@ -84,10 +84,43 @@ export interface SearchParams {
 export async function searchListings(
   params: SearchParams
 ): Promise<ListingsResponse> {
-  return visorFetch<ListingsResponse>(
+  // Translate our param names to Visor API's actual parameter names
+  const apiParams: Record<string, string | number | undefined> = {
+    make: params.make,
+    model: params.model,
+    trim: params.trim,
+    min_price: params.price_min,
+    max_price: params.price_max,
+    max_mileage: params.miles_max,
+    postal_code: params.postal_code,
+    radius: params.radius,
+    inventory_type: params.inventory_type,
+    drivetrain: params.drivetrain,
+    fuel_type: params.fuel_type,
+    exterior_color: params.exterior_color,
+    sort: params.sort,
+    limit: params.limit,
+    offset: params.offset,
+  };
+
+  // Visor uses "year" with comma-separated values, not year_min/year_max
+  if (params.year_min || params.year_max) {
+    const min = params.year_min || 2000;
+    const max = params.year_max || new Date().getFullYear() + 1;
+    const years: number[] = [];
+    for (let y = min; y <= max; y++) years.push(y);
+    apiParams.year = years.join(",");
+  }
+
+  const raw = await visorFetch<{ data: Listing[]; meta?: { total?: number } }>(
     "/listings",
-    params as Record<string, string | number | undefined>
+    apiParams
   );
+
+  return {
+    listings: raw.data ?? [],
+    total: raw.meta?.total ?? raw.data?.length ?? 0,
+  };
 }
 
 export async function getListing(listingId: string): Promise<Listing> {
