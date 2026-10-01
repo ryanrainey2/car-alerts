@@ -60,20 +60,77 @@ export interface ListingsResponse {
 }
 
 export interface SearchParams {
+  // Vehicle
   make?: string;
   model?: string;
   trim?: string;
   year_min?: number;
   year_max?: number;
-  price_min?: number;
-  price_max?: number;
-  miles_max?: number;
-  postal_code?: string;
-  radius?: number;
-  inventory_type?: string;
+  version?: string;
+  body_type?: string;
+  transmission?: string;
   drivetrain?: string;
   fuel_type?: string;
+  powertrain_type?: string;
+  engine?: string;
+  cylinders?: string;
+  doors?: string;
+  seating_capacity?: string;
+  model_code?: string;
+
+  // Colors
   exterior_color?: string;
+  interior_color?: string;
+  base_exterior_color?: string;
+  base_interior_color?: string;
+
+  // Pricing
+  price_min?: number;
+  price_max?: number;
+  miles_min?: number;
+  miles_max?: number;
+  msrp_min?: number;
+  msrp_max?: number;
+
+  // Market
+  min_days_on_market?: number;
+  max_days_on_market?: number;
+  listed_after?: string;
+
+  // Inventory
+  inventory_type?: string;
+  availability_status?: string;
+
+  // Dealer/location
+  state?: string;
+  dealer_type?: string;
+  postal_code?: string;
+  radius?: number;
+
+  // Features
+  features?: string;
+  options_packages?: string;
+  keywords?: string;
+
+  // Exclusions
+  exclude_make?: string;
+  exclude_model?: string;
+  exclude_trim?: string;
+  exclude_year?: string;
+  exclude_state?: string;
+  exclude_body_type?: string;
+  exclude_drivetrain?: string;
+  exclude_transmission?: string;
+  exclude_fuel_type?: string;
+  exclude_engine?: string;
+  exclude_version?: string;
+  exclude_exterior_color?: string;
+  exclude_interior_color?: string;
+  exclude_options_packages?: string;
+  exclude_features?: string;
+  exclude_keywords?: string;
+
+  // Pagination / sort
   sort?: string;
   limit?: number;
   offset?: number;
@@ -86,18 +143,75 @@ export async function searchListings(
 ): Promise<ListingsResponse> {
   // Translate our param names to Visor API's actual parameter names
   const apiParams: Record<string, string | number | undefined> = {
+    // Vehicle
     make: params.make,
     model: params.model,
     trim: params.trim,
-    min_price: params.price_min,
-    max_price: params.price_max,
-    max_mileage: params.miles_max,
-    postal_code: params.postal_code,
-    radius: params.radius,
-    inventory_type: params.inventory_type,
+    version: params.version,
+    body_type: params.body_type,
+    transmission: params.transmission,
     drivetrain: params.drivetrain,
     fuel_type: params.fuel_type,
+    powertrain_type: params.powertrain_type,
+    engine: params.engine,
+    cylinders: params.cylinders,
+    doors: params.doors,
+    seating_capacity: params.seating_capacity,
+    model_code: params.model_code,
+
+    // Colors
     exterior_color: params.exterior_color,
+    interior_color: params.interior_color,
+    base_exterior_color: params.base_exterior_color,
+    base_interior_color: params.base_interior_color,
+
+    // Pricing (translate to Visor API names)
+    min_price: params.price_min,
+    max_price: params.price_max,
+    min_mileage: params.miles_min,
+    max_mileage: params.miles_max,
+    min_msrp: params.msrp_min,
+    max_msrp: params.msrp_max,
+
+    // Market
+    min_days_on_market: params.min_days_on_market,
+    max_days_on_market: params.max_days_on_market,
+    listed_after: params.listed_after,
+
+    // Inventory
+    inventory_type: params.inventory_type,
+    availability_status: params.availability_status,
+
+    // Dealer / location
+    state: params.state,
+    dealer_type: params.dealer_type,
+    postal_code: params.postal_code,
+    radius: params.radius,
+
+    // Features
+    features: params.features,
+    options_packages: params.options_packages,
+    keywords: params.keywords,
+
+    // Exclusions
+    exclude_make: params.exclude_make,
+    exclude_model: params.exclude_model,
+    exclude_trim: params.exclude_trim,
+    exclude_year: params.exclude_year,
+    exclude_state: params.exclude_state,
+    exclude_body_type: params.exclude_body_type,
+    exclude_drivetrain: params.exclude_drivetrain,
+    exclude_transmission: params.exclude_transmission,
+    exclude_fuel_type: params.exclude_fuel_type,
+    exclude_engine: params.exclude_engine,
+    exclude_version: params.exclude_version,
+    exclude_exterior_color: params.exclude_exterior_color,
+    exclude_interior_color: params.exclude_interior_color,
+    exclude_options_packages: params.exclude_options_packages,
+    exclude_features: params.exclude_features,
+    exclude_keywords: params.exclude_keywords,
+
+    // Pagination / sort
     sort: params.sort,
     limit: params.limit,
     offset: params.offset,

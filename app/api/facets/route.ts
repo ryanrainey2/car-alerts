@@ -13,14 +13,28 @@ export async function GET(request: NextRequest) {
 
   const url = new URL(`${VISOR_BASE_URL}/facets`);
 
-  const make = sp.get("make");
-  const model = sp.get("model");
+  // Pass through all filter params that can narrow facets
+  const passthroughKeys = [
+    "make",
+    "model",
+    "trim",
+    "body_type",
+    "drivetrain",
+    "fuel_type",
+    "transmission",
+    "exterior_color",
+    "interior_color",
+    "inventory_type",
+    "state",
+  ];
+
+  for (const key of passthroughKeys) {
+    const val = sp.get(key);
+    if (val) url.searchParams.set(key, val);
+  }
+
   const yearMin = sp.get("year_min");
   const yearMax = sp.get("year_max");
-  const facets = sp.get("facets");
-
-  if (make) url.searchParams.set("make", make);
-  if (model) url.searchParams.set("model", model);
 
   // Visor facets API uses "year" with comma-separated values, not year_min/year_max
   if (yearMin || yearMax) {
@@ -31,6 +45,7 @@ export async function GET(request: NextRequest) {
     url.searchParams.set("year", years.join(","));
   }
 
+  const facets = sp.get("facets");
   if (facets) url.searchParams.set("facets", facets);
 
   try {

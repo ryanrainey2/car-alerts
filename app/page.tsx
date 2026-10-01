@@ -32,6 +32,62 @@ function Corners() {
   );
 }
 
+/* ---------- reusable group-label style ---------- */
+const groupLabelStyle: React.CSSProperties = {
+  fontFamily: "var(--font-heading)",
+  fontWeight: 600,
+  fontSize: "15px",
+  textTransform: "uppercase",
+  letterSpacing: "0.06em",
+  paddingTop: "22px",
+};
+
+/* ---------- reusable group container style (with top border) ---------- */
+const groupStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "110px minmax(0,1fr)",
+  gap: "var(--space-4)",
+  alignItems: "start",
+  borderTop: "1px solid var(--color-divider)",
+  paddingTop: "var(--space-6)",
+};
+
+/* ---------- $ prefix wrapper ---------- */
+function DollarInput({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <div style={{ position: "relative" }}>
+      <span
+        style={{
+          position: "absolute",
+          left: "10px",
+          top: "50%",
+          transform: "translateY(-50%)",
+          fontSize: "14px",
+          color: "color-mix(in srgb, var(--color-text) 50%, transparent)",
+        }}
+      >
+        $
+      </span>
+      <input
+        className="input"
+        type="number"
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{ paddingLeft: "22px" }}
+      />
+    </div>
+  );
+}
+
 /* ---------- year options (descending) ---------- */
 const YEAR_OPTIONS: string[] = [];
 for (let y = new Date().getFullYear() + 1; y >= 2000; y--) {
@@ -39,23 +95,81 @@ for (let y = new Date().getFullYear() + 1; y >= 2000; y--) {
 }
 
 export default function Home() {
-  /* --- filter state --- */
+  /* --- filter state: 01 Vehicle --- */
   const [make, setMake] = useState("");
   const [model, setModel] = useState("");
   const [trim, setTrim] = useState("");
   const [yearMin, setYearMin] = useState("");
   const [yearMax, setYearMax] = useState("");
+
+  /* --- filter state: 02 Limits (kept for compat, moved to 06) --- */
+  const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
+  const [milesMin, setMilesMin] = useState("");
   const [milesMax, setMilesMax] = useState("");
+  const [inventoryType, setInventoryType] = useState("");
+
+  /* --- filter state: 03 Location --- */
   const [postalCode, setPostalCode] = useState("");
   const [radius, setRadius] = useState("50");
-  const [inventoryType, setInventoryType] = useState("");
+
+  /* --- filter state: 04 Details --- */
+  const [bodyType, setBodyType] = useState("");
+  const [transmission, setTransmission] = useState("");
+  const [drivetrain, setDrivetrain] = useState("");
+  const [fuelType, setFuelType] = useState("");
+  const [powertrainType, setPowertrainType] = useState("");
+  const [engine, setEngine] = useState("");
+  const [cylinders, setCylinders] = useState("");
+  const [doors, setDoors] = useState("");
+  const [seatingCapacity, setSeatingCapacity] = useState("");
+
+  /* --- filter state: 05 Colors --- */
+  const [exteriorColor, setExteriorColor] = useState("");
+  const [interiorColor, setInteriorColor] = useState("");
+  const [baseExteriorColor, setBaseExteriorColor] = useState("");
+  const [baseInteriorColor, setBaseInteriorColor] = useState("");
+
+  /* --- filter state: 06 Pricing & Market --- */
+  const [msrpMin, setMsrpMin] = useState("");
+  const [msrpMax, setMsrpMax] = useState("");
+  const [minDaysOnMarket, setMinDaysOnMarket] = useState("");
+  const [maxDaysOnMarket, setMaxDaysOnMarket] = useState("");
+  const [listedAfter, setListedAfter] = useState("");
+
+  /* --- filter state: 07 Dealer --- */
+  const [state, setState] = useState("");
+  const [dealerType, setDealerType] = useState("");
+  const [availabilityStatus, setAvailabilityStatus] = useState("");
+
+  /* --- filter state: 08 Features --- */
+  const [features, setFeatures] = useState("");
+  const [optionsPackages, setOptionsPackages] = useState("");
+  const [keywords, setKeywords] = useState<string[]>([]);
+
+  /* --- filter state: 09 Exclude --- */
+  const [excludeOpen, setExcludeOpen] = useState(false);
+  const [excludeMake, setExcludeMake] = useState("");
+  const [excludeModel, setExcludeModel] = useState("");
+  const [excludeTrim, setExcludeTrim] = useState("");
+  const [excludeYear, setExcludeYear] = useState("");
+  const [excludeState, setExcludeState] = useState("");
+  const [excludeBodyType, setExcludeBodyType] = useState("");
+  const [excludeDrivetrain, setExcludeDrivetrain] = useState("");
+  const [excludeExteriorColor, setExcludeExteriorColor] = useState("");
+  const [excludeFeatures, setExcludeFeatures] = useState("");
+  const [excludeKeywords, setExcludeKeywords] = useState("");
+
+  /* --- sort --- */
   const [sort, setSort] = useState("newest");
 
   /* --- facets state --- */
   const [makes, setMakes] = useState<string[]>([]);
   const [models, setModels] = useState<string[]>([]);
   const [trims, setTrims] = useState<string[]>([]);
+  const [bodyTypes, setBodyTypes] = useState<string[]>([]);
+  const [exteriorColors, setExteriorColors] = useState<string[]>([]);
+  const [interiorColors, setInteriorColors] = useState<string[]>([]);
 
   /* --- results state --- */
   const [listings, setListings] = useState<Listing[]>([]);
@@ -79,10 +193,19 @@ export default function Home() {
     []
   );
 
-  // Load makes on mount
+  // Load makes, body_types, colors on mount
   useEffect(() => {
     fetchFacets({ facets: "make" }).then((d) => {
       if (d.make) setMakes(d.make);
+    });
+    fetchFacets({ facets: "body_type" }).then((d) => {
+      if (d.body_type) setBodyTypes(d.body_type);
+    });
+    fetchFacets({ facets: "exterior_color" }).then((d) => {
+      if (d.exterior_color) setExteriorColors(d.exterior_color);
+    });
+    fetchFacets({ facets: "interior_color" }).then((d) => {
+      if (d.interior_color) setInteriorColors(d.interior_color);
     });
   }, [fetchFacets]);
 
@@ -149,16 +272,71 @@ export default function Home() {
     setSearched(true);
 
     const params = new URLSearchParams();
+
+    // Vehicle
     if (make) params.set("make", make);
     if (model) params.set("model", model);
     if (trim) params.set("trim", trim);
     if (yearMin) params.set("year_min", yearMin);
     if (yearMax) params.set("year_max", yearMax);
+
+    // Details
+    if (bodyType) params.set("body_type", bodyType);
+    if (transmission) params.set("transmission", transmission);
+    if (drivetrain) params.set("drivetrain", drivetrain);
+    if (fuelType) params.set("fuel_type", fuelType);
+    if (powertrainType) params.set("powertrain_type", powertrainType);
+    if (engine) params.set("engine", engine);
+    if (cylinders) params.set("cylinders", cylinders);
+    if (doors) params.set("doors", doors);
+    if (seatingCapacity) params.set("seating_capacity", seatingCapacity);
+
+    // Colors
+    if (exteriorColor) params.set("exterior_color", exteriorColor);
+    if (interiorColor) params.set("interior_color", interiorColor);
+    if (baseExteriorColor) params.set("base_exterior_color", baseExteriorColor);
+    if (baseInteriorColor) params.set("base_interior_color", baseInteriorColor);
+
+    // Pricing
+    if (priceMin) params.set("price_min", priceMin);
     if (priceMax) params.set("price_max", priceMax);
+    if (milesMin) params.set("miles_min", milesMin);
     if (milesMax) params.set("miles_max", milesMax);
-    if (postalCode) params.set("postal_code", postalCode);
-    if (radius) params.set("radius", radius);
+    if (msrpMin) params.set("msrp_min", msrpMin);
+    if (msrpMax) params.set("msrp_max", msrpMax);
+    if (minDaysOnMarket) params.set("min_days_on_market", minDaysOnMarket);
+    if (maxDaysOnMarket) params.set("max_days_on_market", maxDaysOnMarket);
+    if (listedAfter) params.set("listed_after", listedAfter);
+
+    // Inventory
     if (inventoryType) params.set("inventory_type", inventoryType);
+    if (availabilityStatus) params.set("availability_status", availabilityStatus);
+
+    // Location / Dealer
+    if (postalCode) params.set("postal_code", postalCode);
+    if (radius && postalCode) params.set("radius", radius);
+    if (state) params.set("state", state);
+    if (dealerType) params.set("dealer_type", dealerType);
+
+    // Features
+    if (features) params.set("features", features);
+    if (optionsPackages) params.set("options_packages", optionsPackages);
+    if (keywords.length > 0) params.set("keywords", keywords.join(","));
+
+    // Exclusions
+    if (excludeMake) params.set("exclude_make", excludeMake);
+    if (excludeModel) params.set("exclude_model", excludeModel);
+    if (excludeTrim) params.set("exclude_trim", excludeTrim);
+    if (excludeYear) params.set("exclude_year", excludeYear);
+    if (excludeState) params.set("exclude_state", excludeState);
+    if (excludeBodyType) params.set("exclude_body_type", excludeBodyType);
+    if (excludeDrivetrain) params.set("exclude_drivetrain", excludeDrivetrain);
+    if (excludeExteriorColor)
+      params.set("exclude_exterior_color", excludeExteriorColor);
+    if (excludeFeatures) params.set("exclude_features", excludeFeatures);
+    if (excludeKeywords) params.set("exclude_keywords", excludeKeywords);
+
+    // Sort
     if (sort === "price") params.set("sort", "price");
     else if (sort === "miles") params.set("sort", "miles");
     else params.set("sort", "listed_at");
@@ -189,11 +367,60 @@ export default function Home() {
     if (trim) search.trim = trim;
     if (yearMin) search.year_min = Number(yearMin);
     if (yearMax) search.year_max = Number(yearMax);
+    if (priceMin) search.price_min = Number(priceMin);
     if (priceMax) search.price_max = Number(priceMax);
+    if (milesMin) search.miles_min = Number(milesMin);
     if (milesMax) search.miles_max = Number(milesMax);
     if (postalCode) search.postal_code = postalCode;
     if (radius) search.radius = Number(radius);
     if (inventoryType) search.inventory_type = inventoryType;
+
+    // Details
+    if (bodyType) search.body_type = bodyType;
+    if (transmission) search.transmission = transmission;
+    if (drivetrain) search.drivetrain = drivetrain;
+    if (fuelType) search.fuel_type = fuelType;
+    if (powertrainType) search.powertrain_type = powertrainType;
+    if (engine) search.engine = engine;
+    if (cylinders) search.cylinders = cylinders;
+    if (doors) search.doors = doors;
+    if (seatingCapacity) search.seating_capacity = seatingCapacity;
+
+    // Colors
+    if (exteriorColor) search.exterior_color = exteriorColor;
+    if (interiorColor) search.interior_color = interiorColor;
+    if (baseExteriorColor) search.base_exterior_color = baseExteriorColor;
+    if (baseInteriorColor) search.base_interior_color = baseInteriorColor;
+
+    // Pricing & Market
+    if (msrpMin) search.msrp_min = Number(msrpMin);
+    if (msrpMax) search.msrp_max = Number(msrpMax);
+    if (minDaysOnMarket) search.min_days_on_market = Number(minDaysOnMarket);
+    if (maxDaysOnMarket) search.max_days_on_market = Number(maxDaysOnMarket);
+    if (listedAfter) search.listed_after = listedAfter;
+
+    // Inventory / Dealer
+    if (availabilityStatus) search.availability_status = availabilityStatus;
+    if (state) search.state = state;
+    if (dealerType) search.dealer_type = dealerType;
+
+    // Features
+    if (features) search.features = features;
+    if (optionsPackages) search.options_packages = optionsPackages;
+    if (keywords.length > 0) search.keywords = keywords.join(",");
+
+    // Exclusions
+    if (excludeMake) search.exclude_make = excludeMake;
+    if (excludeModel) search.exclude_model = excludeModel;
+    if (excludeTrim) search.exclude_trim = excludeTrim;
+    if (excludeYear) search.exclude_year = excludeYear;
+    if (excludeState) search.exclude_state = excludeState;
+    if (excludeBodyType) search.exclude_body_type = excludeBodyType;
+    if (excludeDrivetrain) search.exclude_drivetrain = excludeDrivetrain;
+    if (excludeExteriorColor)
+      search.exclude_exterior_color = excludeExteriorColor;
+    if (excludeFeatures) search.exclude_features = excludeFeatures;
+    if (excludeKeywords) search.exclude_keywords = excludeKeywords;
 
     const alertName =
       [make, model, trim].filter(Boolean).join(" ") || "Any vehicle";
@@ -219,11 +446,48 @@ export default function Home() {
     setTrim("");
     setYearMin("");
     setYearMax("");
+    setPriceMin("");
     setPriceMax("");
+    setMilesMin("");
     setMilesMax("");
     setPostalCode("");
     setRadius("50");
     setInventoryType("");
+    setBodyType("");
+    setTransmission("");
+    setDrivetrain("");
+    setFuelType("");
+    setPowertrainType("");
+    setEngine("");
+    setCylinders("");
+    setDoors("");
+    setSeatingCapacity("");
+    setExteriorColor("");
+    setInteriorColor("");
+    setBaseExteriorColor("");
+    setBaseInteriorColor("");
+    setMsrpMin("");
+    setMsrpMax("");
+    setMinDaysOnMarket("");
+    setMaxDaysOnMarket("");
+    setListedAfter("");
+    setState("");
+    setDealerType("");
+    setAvailabilityStatus("");
+    setFeatures("");
+    setOptionsPackages("");
+    setKeywords([]);
+    setExcludeOpen(false);
+    setExcludeMake("");
+    setExcludeModel("");
+    setExcludeTrim("");
+    setExcludeYear("");
+    setExcludeState("");
+    setExcludeBodyType("");
+    setExcludeDrivetrain("");
+    setExcludeExteriorColor("");
+    setExcludeFeatures("");
+    setExcludeKeywords("");
     setSavedToast(false);
   }
 
@@ -236,9 +500,18 @@ export default function Home() {
     parts.push(vehicle || "Any vehicle");
     if (priceMax)
       parts.push("under $" + Number(priceMax).toLocaleString());
+    if (priceMin)
+      parts.push("from $" + Number(priceMin).toLocaleString());
     if (milesMax)
       parts.push("under " + Number(milesMax).toLocaleString() + " mi");
-    if (postalCode) parts.push(`${radius} mi of ${postalCode}`);
+    if (bodyType) parts.push(bodyType);
+    if (drivetrain) parts.push(drivetrain);
+    if (fuelType) parts.push(fuelType);
+    if (exteriorColor) parts.push(exteriorColor);
+    if (postalCode && radius) parts.push(`${radius} mi of ${postalCode}`);
+    else if (postalCode) parts.push(`near ${postalCode}`);
+    else if (!radius) parts.push("Nationwide");
+    if (state) parts.push(state);
     return parts.join(" \u00b7 ");
   }
 
@@ -308,18 +581,7 @@ export default function Home() {
             alignItems: "start",
           }}
         >
-          <div
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontWeight: 600,
-              fontSize: "15px",
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              paddingTop: "22px",
-            }}
-          >
-            01 Vehicle
-          </div>
+          <div style={groupLabelStyle}>01 Vehicle</div>
           <div className="dc-fgrid">
             <div className="field">
               <label>Make</label>
@@ -416,57 +678,19 @@ export default function Home() {
         </div>
 
         {/* 02 LIMITS */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "110px minmax(0,1fr)",
-            gap: "var(--space-4)",
-            alignItems: "start",
-            borderTop: "1px solid var(--color-divider)",
-            paddingTop: "var(--space-6)",
-          }}
-        >
-          <div
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontWeight: 600,
-              fontSize: "15px",
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              paddingTop: "22px",
-            }}
-          >
-            02 Limits
-          </div>
+        <div style={groupStyle}>
+          <div style={groupLabelStyle}>02 Limits</div>
           <div className="dc-fgrid">
             <div className="field">
               <label>Max price</label>
-              <div style={{ position: "relative" }}>
-                <span
-                  style={{
-                    position: "absolute",
-                    left: "10px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    fontSize: "14px",
-                    color:
-                      "color-mix(in srgb, var(--color-text) 50%, transparent)",
-                  }}
-                >
-                  $
-                </span>
-                <input
-                  className="input"
-                  type="number"
-                  placeholder="45,000"
-                  value={priceMax}
-                  onChange={(e) => {
-                    setPriceMax(e.target.value);
-                    setSavedToast(false);
-                  }}
-                  style={{ paddingLeft: "22px" }}
-                />
-              </div>
+              <DollarInput
+                value={priceMax}
+                onChange={(v) => {
+                  setPriceMax(v);
+                  setSavedToast(false);
+                }}
+                placeholder="45,000"
+              />
             </div>
             <div className="field">
               <label>Max mileage</label>
@@ -518,28 +742,8 @@ export default function Home() {
         </div>
 
         {/* 03 LOCATION */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "110px minmax(0,1fr)",
-            gap: "var(--space-4)",
-            alignItems: "start",
-            borderTop: "1px solid var(--color-divider)",
-            paddingTop: "var(--space-6)",
-          }}
-        >
-          <div
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontWeight: 600,
-              fontSize: "15px",
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              paddingTop: "22px",
-            }}
-          >
-            03 Location
-          </div>
+        <div style={groupStyle}>
+          <div style={groupLabelStyle}>03 Location</div>
           <div className="dc-fgrid">
             <div className="field">
               <label>ZIP code</label>
@@ -555,26 +759,685 @@ export default function Home() {
               />
             </div>
             <div className="field">
-              <label>Radius &middot; {radius} mi</label>
-              <input
-                type="range"
-                min="10"
-                max="500"
-                step="10"
-                value={radius}
+              <label>
+                Radius &middot;{" "}
+                {radius === "" ? "Nationwide" : `${radius} mi`}
+              </label>
+              <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+                <input
+                  type="range"
+                  min="10"
+                  max="500"
+                  step="10"
+                  value={radius || "500"}
+                  onChange={(e) => {
+                    setRadius(e.target.value);
+                    setSavedToast(false);
+                  }}
+                  style={{
+                    flex: 1,
+                    height: "36px",
+                    accentColor: "var(--color-accent)",
+                    margin: 0,
+                  }}
+                />
+                <label
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    fontSize: "12px",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={radius === ""}
+                    onChange={(e) => {
+                      setRadius(e.target.checked ? "" : "500");
+                      setSavedToast(false);
+                    }}
+                    style={{ accentColor: "var(--color-accent)" }}
+                  />
+                  All US
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 04 DETAILS */}
+        <div style={groupStyle}>
+          <div style={groupLabelStyle}>04 Details</div>
+          <div className="dc-fgrid">
+            <div className="field">
+              <label>Body type</label>
+              <select
+                className="input"
+                value={bodyType}
                 onChange={(e) => {
-                  setRadius(e.target.value);
+                  setBodyType(e.target.value);
                   setSavedToast(false);
                 }}
-                style={{
-                  width: "100%",
-                  height: "36px",
-                  accentColor: "var(--color-accent)",
-                  margin: 0,
+              >
+                <option value="">Any</option>
+                {bodyTypes.map((bt) => (
+                  <option key={bt} value={bt}>
+                    {bt}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label>Transmission</label>
+              <select
+                className="input"
+                value={transmission}
+                onChange={(e) => {
+                  setTransmission(e.target.value);
+                  setSavedToast(false);
+                }}
+              >
+                <option value="">Any</option>
+                <option value="Automatic">Automatic</option>
+                <option value="CVT">CVT</option>
+                <option value="Manual">Manual</option>
+              </select>
+            </div>
+            <div className="field">
+              <label>Drivetrain</label>
+              <select
+                className="input"
+                value={drivetrain}
+                onChange={(e) => {
+                  setDrivetrain(e.target.value);
+                  setSavedToast(false);
+                }}
+              >
+                <option value="">Any</option>
+                <option value="AWD">AWD</option>
+                <option value="FWD">FWD</option>
+                <option value="4WD">4WD</option>
+                <option value="RWD">RWD</option>
+              </select>
+            </div>
+            <div className="field">
+              <label>Fuel type</label>
+              <select
+                className="input"
+                value={fuelType}
+                onChange={(e) => {
+                  setFuelType(e.target.value);
+                  setSavedToast(false);
+                }}
+              >
+                <option value="">Any</option>
+                <option value="Gas only">Gas only</option>
+                <option value="Hybrid">Hybrid</option>
+                <option value="Diesel">Diesel</option>
+                <option value="Flex Fuel">Flex Fuel</option>
+                <option value="Electric">Electric</option>
+              </select>
+            </div>
+            <div className="field">
+              <label>Powertrain</label>
+              <select
+                className="input"
+                value={powertrainType}
+                onChange={(e) => {
+                  setPowertrainType(e.target.value);
+                  setSavedToast(false);
+                }}
+              >
+                <option value="">Any</option>
+                <option value="Combustion">Combustion</option>
+                <option value="HEV">HEV</option>
+                <option value="MHEV">MHEV</option>
+                <option value="PHEV">PHEV</option>
+                <option value="BEV">BEV</option>
+              </select>
+            </div>
+            <div className="field">
+              <label>Engine</label>
+              <input
+                className="input"
+                type="text"
+                placeholder="e.g. 2.0L Turbo"
+                value={engine}
+                onChange={(e) => {
+                  setEngine(e.target.value);
+                  setSavedToast(false);
+                }}
+              />
+            </div>
+            <div className="field">
+              <label>Cylinders</label>
+              <select
+                className="input"
+                value={cylinders}
+                onChange={(e) => {
+                  setCylinders(e.target.value);
+                  setSavedToast(false);
+                }}
+              >
+                <option value="">Any</option>
+                {["3", "4", "5", "6", "8", "10", "12"].map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label>Doors</label>
+              <select
+                className="input"
+                value={doors}
+                onChange={(e) => {
+                  setDoors(e.target.value);
+                  setSavedToast(false);
+                }}
+              >
+                <option value="">Any</option>
+                {["2", "3", "4", "5"].map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label>Seating capacity</label>
+              <select
+                className="input"
+                value={seatingCapacity}
+                onChange={(e) => {
+                  setSeatingCapacity(e.target.value);
+                  setSavedToast(false);
+                }}
+              >
+                <option value="">Any</option>
+                {["2", "4", "5", "6", "7", "8"].map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* 05 COLORS */}
+        <div style={groupStyle}>
+          <div style={groupLabelStyle}>05 Colors</div>
+          <div className="dc-fgrid">
+            <div className="field">
+              <label>Exterior color</label>
+              <select
+                className="input"
+                value={exteriorColor}
+                onChange={(e) => {
+                  setExteriorColor(e.target.value);
+                  setSavedToast(false);
+                }}
+              >
+                <option value="">Any</option>
+                {exteriorColors.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label>Interior color</label>
+              <select
+                className="input"
+                value={interiorColor}
+                onChange={(e) => {
+                  setInteriorColor(e.target.value);
+                  setSavedToast(false);
+                }}
+              >
+                <option value="">Any</option>
+                {interiorColors.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label>Base exterior color</label>
+              <input
+                className="input"
+                type="text"
+                placeholder="e.g. White"
+                value={baseExteriorColor}
+                onChange={(e) => {
+                  setBaseExteriorColor(e.target.value);
+                  setSavedToast(false);
+                }}
+              />
+            </div>
+            <div className="field">
+              <label>Base interior color</label>
+              <input
+                className="input"
+                type="text"
+                placeholder="e.g. Black"
+                value={baseInteriorColor}
+                onChange={(e) => {
+                  setBaseInteriorColor(e.target.value);
+                  setSavedToast(false);
                 }}
               />
             </div>
           </div>
+        </div>
+
+        {/* 06 PRICING & MARKET */}
+        <div style={groupStyle}>
+          <div style={groupLabelStyle}>06 Pricing &amp; Market</div>
+          <div className="dc-fgrid">
+            <div className="field">
+              <label>Min price</label>
+              <DollarInput
+                value={priceMin}
+                onChange={(v) => {
+                  setPriceMin(v);
+                  setSavedToast(false);
+                }}
+                placeholder="10,000"
+              />
+            </div>
+            <div className="field">
+              <label>Max price</label>
+              <DollarInput
+                value={priceMax}
+                onChange={(v) => {
+                  setPriceMax(v);
+                  setSavedToast(false);
+                }}
+                placeholder="45,000"
+              />
+            </div>
+            <div className="field">
+              <label>Min mileage</label>
+              <input
+                className="input"
+                type="number"
+                placeholder="0"
+                value={milesMin}
+                onChange={(e) => {
+                  setMilesMin(e.target.value);
+                  setSavedToast(false);
+                }}
+              />
+            </div>
+            <div className="field">
+              <label>Max mileage</label>
+              <input
+                className="input"
+                type="number"
+                placeholder="40,000"
+                value={milesMax}
+                onChange={(e) => {
+                  setMilesMax(e.target.value);
+                  setSavedToast(false);
+                }}
+              />
+            </div>
+            <div className="field">
+              <label>Min MSRP</label>
+              <DollarInput
+                value={msrpMin}
+                onChange={(v) => {
+                  setMsrpMin(v);
+                  setSavedToast(false);
+                }}
+                placeholder="25,000"
+              />
+            </div>
+            <div className="field">
+              <label>Max MSRP</label>
+              <DollarInput
+                value={msrpMax}
+                onChange={(v) => {
+                  setMsrpMax(v);
+                  setSavedToast(false);
+                }}
+                placeholder="60,000"
+              />
+            </div>
+            <div className="field">
+              <label>Min days on market</label>
+              <input
+                className="input"
+                type="number"
+                placeholder="0"
+                value={minDaysOnMarket}
+                onChange={(e) => {
+                  setMinDaysOnMarket(e.target.value);
+                  setSavedToast(false);
+                }}
+              />
+            </div>
+            <div className="field">
+              <label>Max days on market</label>
+              <input
+                className="input"
+                type="number"
+                placeholder="90"
+                value={maxDaysOnMarket}
+                onChange={(e) => {
+                  setMaxDaysOnMarket(e.target.value);
+                  setSavedToast(false);
+                }}
+              />
+            </div>
+            <div className="field">
+              <label>Listed after</label>
+              <input
+                className="input"
+                type="date"
+                value={listedAfter}
+                onChange={(e) => {
+                  setListedAfter(e.target.value);
+                  setSavedToast(false);
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 07 DEALER */}
+        <div style={groupStyle}>
+          <div style={groupLabelStyle}>07 Dealer</div>
+          <div className="dc-fgrid">
+            <div className="field">
+              <label>State(s)</label>
+              <input
+                className="input"
+                type="text"
+                placeholder="TN, CA, TX"
+                value={state}
+                onChange={(e) => {
+                  setState(e.target.value);
+                  setSavedToast(false);
+                }}
+              />
+            </div>
+            <div className="field">
+              <label>Dealer type</label>
+              <select
+                className="input"
+                value={dealerType}
+                onChange={(e) => {
+                  setDealerType(e.target.value);
+                  setSavedToast(false);
+                }}
+              >
+                <option value="">Any</option>
+                <option value="Franchise">Franchise</option>
+                <option value="Independent">Independent</option>
+              </select>
+            </div>
+            <div className="field">
+              <label>Availability</label>
+              <div
+                className="seg"
+                role="radiogroup"
+                style={{ display: "flex", width: "100%" }}
+              >
+                {[
+                  { label: "All", value: "" },
+                  { label: "Stock", value: "stock" },
+                  { label: "Transit", value: "transit" },
+                  { label: "Build", value: "build" },
+                ].map((opt) => (
+                  <label
+                    key={opt.value}
+                    className="seg-opt"
+                    style={{ flex: 1, justifyContent: "center" }}
+                  >
+                    <input
+                      type="radio"
+                      name="avail"
+                      value={opt.value}
+                      checked={availabilityStatus === opt.value}
+                      onChange={() => {
+                        setAvailabilityStatus(opt.value);
+                        setSavedToast(false);
+                      }}
+                    />
+                    {opt.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 08 FEATURES */}
+        <div style={groupStyle}>
+          <div style={groupLabelStyle}>08 Features</div>
+          <div className="dc-fgrid">
+            <div className="field">
+              <label>Features</label>
+              <input
+                className="input"
+                type="text"
+                placeholder="sunroof, heated seats"
+                value={features}
+                onChange={(e) => {
+                  setFeatures(e.target.value);
+                  setSavedToast(false);
+                }}
+              />
+            </div>
+            <div className="field">
+              <label>Options packages</label>
+              <input
+                className="input"
+                type="text"
+                placeholder="Premium, Technology"
+                value={optionsPackages}
+                onChange={(e) => {
+                  setOptionsPackages(e.target.value);
+                  setSavedToast(false);
+                }}
+              />
+            </div>
+            <div className="field">
+              <label>Keywords</label>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                {[{ label: "One owner", value: "one_owner" }].map((kw) => (
+                  <label
+                    key={kw.value}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      fontSize: "14px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={keywords.includes(kw.value)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setKeywords([...keywords, kw.value]);
+                        } else {
+                          setKeywords(keywords.filter((k) => k !== kw.value));
+                        }
+                        setSavedToast(false);
+                      }}
+                      style={{ accentColor: "var(--color-accent)" }}
+                    />
+                    {kw.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 09 EXCLUDE */}
+        <div style={groupStyle}>
+          <div style={groupLabelStyle}>
+            <button
+              type="button"
+              onClick={() => setExcludeOpen(!excludeOpen)}
+              style={{
+                all: "unset",
+                cursor: "pointer",
+                fontFamily: "var(--font-heading)",
+                fontWeight: 600,
+                fontSize: "15px",
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
+              09 Exclude
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{
+                  transform: excludeOpen ? "rotate(180deg)" : "rotate(0deg)",
+                  transition: "transform 0.15s ease",
+                }}
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+          </div>
+          {excludeOpen ? (
+            <div className="dc-fgrid">
+              <div className="field">
+                <label>Exclude make(s)</label>
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Nissan, Mitsubishi"
+                  value={excludeMake}
+                  onChange={(e) => setExcludeMake(e.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label>Exclude model(s)</label>
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Altima, Rogue"
+                  value={excludeModel}
+                  onChange={(e) => setExcludeModel(e.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label>Exclude trim(s)</label>
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Base, S"
+                  value={excludeTrim}
+                  onChange={(e) => setExcludeTrim(e.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label>Exclude year(s)</label>
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="2020, 2021"
+                  value={excludeYear}
+                  onChange={(e) => setExcludeYear(e.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label>Exclude state(s)</label>
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="FL, NY"
+                  value={excludeState}
+                  onChange={(e) => setExcludeState(e.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label>Exclude body type(s)</label>
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Minivan, Convertible"
+                  value={excludeBodyType}
+                  onChange={(e) => setExcludeBodyType(e.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label>Exclude drivetrain(s)</label>
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="FWD"
+                  value={excludeDrivetrain}
+                  onChange={(e) => setExcludeDrivetrain(e.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label>Exclude exterior color(s)</label>
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="White, Silver"
+                  value={excludeExteriorColor}
+                  onChange={(e) => setExcludeExteriorColor(e.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label>Exclude features</label>
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="sunroof"
+                  value={excludeFeatures}
+                  onChange={(e) => setExcludeFeatures(e.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label>Exclude keywords</label>
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="salvage, fleet"
+                  value={excludeKeywords}
+                  onChange={(e) => setExcludeKeywords(e.target.value)}
+                />
+              </div>
+            </div>
+          ) : (
+            <div
+              style={{
+                fontSize: "13px",
+                color:
+                  "color-mix(in srgb, var(--color-text) 50%, transparent)",
+                paddingTop: "22px",
+              }}
+            >
+              Click to expand exclusion filters
+            </div>
+          )}
         </div>
 
         {/* footer */}
@@ -724,7 +1587,9 @@ export default function Home() {
                     marginLeft: "8px",
                   }}
                 >
-                  within {radius} mi of {postalCode}
+                  {radius
+                    ? `within ${radius} mi of ${postalCode}`
+                    : `near ${postalCode}`}
                 </span>
               )}
             </h2>
